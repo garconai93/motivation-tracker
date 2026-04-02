@@ -259,8 +259,8 @@ function renderChart() {
   }
 
   const gradient = ctx.createLinearGradient(0, 0, 0, 220);
-  gradient.addColorStop(0, 'rgba(108, 99, 255, 0.4)');
-  gradient.addColorStop(1, 'rgba(108, 99, 255, 0.0)');
+  gradient.addColorStop(0, 'rgba(99, 102, 241, 0.35)');
+  gradient.addColorStop(1, 'rgba(139, 92, 246, 0.05)');
 
   moodChart = new Chart(ctx, {
     type: 'line',
@@ -269,14 +269,14 @@ function renderChart() {
       datasets: [{
         label: 'Mood',
         data: chartData,
-        borderColor: '#6c63ff',
+        borderColor: '#8b5cf6',
         backgroundColor: gradient,
         borderWidth: 2.5,
-        pointBackgroundColor: '#6c63ff',
+        pointBackgroundColor: '#8b5cf6',
         pointBorderColor: '#fff',
         pointBorderWidth: 2,
         pointRadius: 5,
-        pointHoverRadius: 7,
+        pointHoverRadius: 8,
         fill: true,
         tension: 0.4,
       }]
@@ -289,19 +289,19 @@ function renderChart() {
           min: 0,
           max: 10,
           grid: {
-            color: 'rgba(138, 143, 168, 0.15)',
+            color: 'rgba(148, 163, 184, 0.1)',
           },
           ticks: {
-            color: '#8b8fa8',
+            color: '#64748b',
             stepSize: 2,
           }
         },
         x: {
           grid: {
-            color: 'rgba(138, 143, 168, 0.1)',
+            color: 'rgba(148, 163, 184, 0.05)',
           },
           ticks: {
-            color: '#8b8fa8',
+            color: '#64748b',
           }
         }
       },
@@ -310,18 +310,19 @@ function renderChart() {
           display: false
         },
         tooltip: {
-          backgroundColor: '#1e2230',
-          titleColor: '#e8eaf0',
-          bodyColor: '#8b8fa8',
-          borderColor: '#2a2e3f',
+          backgroundColor: 'rgba(15, 15, 23, 0.9)',
+          titleColor: '#f8fafc',
+          bodyColor: '#94a3b8',
+          borderColor: 'rgba(139, 92, 246, 0.3)',
           borderWidth: 1,
+          padding: 12,
           callbacks: {
             label: ctx => `Mood: ${ctx.raw}/10`
           }
         }
       },
       animation: {
-        duration: 600,
+        duration: 800,
         easing: 'easeOutQuart'
       }
     }
@@ -363,6 +364,7 @@ $('themeToggle').addEventListener('click', () => {
 $('moodSlider').addEventListener('input', (e) => {
   const val = parseInt(e.target.value);
   $('moodValueDisplay').textContent = val;
+  $('sliderFill').style.width = ((val - 1) / 9 * 100) + '%';
   updateMoodFaceHighlight(val);
 });
 
