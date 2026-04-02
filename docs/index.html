@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MotivationTracker</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <h1 class="app-title">🔥 MotivationTracker</h1>
+      </div>
+      <div class="header-right">
+        <button id="themeToggle" class="icon-btn" title="Toggle theme">🌙</button>
+      </div>
+    </header>
+
+    <!-- Streak Banner -->
+    <div class="streak-banner" id="streakBanner">
+      <div class="streak-flame">🔥</div>
+      <div class="streak-info">
+        <span class="streak-count" id="streakCount">0</span>
+        <span class="streak-label">day streak</span>
+      </div>
+      <div class="streak-sublabel">consecutive productive days</div>
+    </div>
+
+    <!-- Today's Mood Card -->
+    <section class="card" id="todayMoodCard">
+      <h2 class="card-title">📅 Today's Mood</h2>
+      <div id="moodPrompt">
+        <p class="mood-question">How are you feeling today?</p>
+        <div class="mood-slider-container">
+          <div class="mood-faces">
+            <span data-val="1">😔</span>
+            <span data-val="2">😕</span>
+            <span data-val="3">😐</span>
+            <span data-val="4">🙂</span>
+            <span data-val="5">😊</span>
+            <span data-val="6">😄</span>
+            <span data-val="7">😁</span>
+            <span data-val="8">🤩</span>
+            <span data-val="9">🥳</span>
+            <span data-val="10">🚀</span>
+          </div>
+          <input type="range" id="moodSlider" min="1" max="10" value="5" class="mood-range">
+          <div class="slider-labels">
+            <span>Low</span>
+            <span class="mood-value-display" id="moodValueDisplay">5</span>
+            <span>High</span>
+          </div>
+        </div>
+        <button class="btn primary-btn" id="saveMoodBtn">Save Mood</button>
+      </div>
+      <div id="moodLogged" class="mood-logged hidden">
+        <div class="logged-mood-display">
+          <span class="logged-emoji" id="loggedEmoji">😊</span>
+          <div class="logged-info">
+            <span class="logged-value" id="loggedMoodValue">5</span>
+            <span class="logged-label">/ 10</span>
+          </div>
+        </div>
+        <p class="logged-time" id="loggedTime"></p>
+        <button class="btn secondary-btn" id="updateMoodBtn">Update Mood</button>
+      </div>
+    </section>
+
+    <!-- Morning Check-in -->
+    <section class="card" id="morningCard">
+      <h2 class="card-title">🌅 Morning Check-in</h2>
+      <textarea id="morningText" class="textarea-field" placeholder="How did you sleep? What's on your mind today? Any intentions for the day?" rows="3"></textarea>
+      <button class="btn primary-btn" id="saveMorningBtn">Save Check-in</button>
+      <div class="saved-note hidden" id="morningSaved">
+        <span class="saved-icon">✅</span> Check-in saved
+      </div>
+    </section>
+
+    <!-- Evening Reflection -->
+    <section class="card" id="eveningCard">
+      <h2 class="card-title">🌙 Evening Reflection</h2>
+      <textarea id="eveningText" class="textarea-field" placeholder="How was your day? What went well? What could have been better? What did you learn?" rows="3"></textarea>
+      <button class="btn primary-btn" id="saveEveningBtn">Save Reflection</button>
+      <div class="saved-note hidden" id="eveningSaved">
+        <span class="saved-icon">✅</span> Reflection saved
+      </div>
+    </section>
+
+    <!-- Goals -->
+    <section class="card" id="goalsCard">
+      <h2 class="card-title">🎯 Goals <span class="goal-count" id="goalCount">(0/3)</span></h2>
+      <div id="goalsList" class="goals-list"></div>
+      <div id="addGoalForm" class="add-goal-form hidden">
+        <input type="text" id="goalInput" class="text-input" placeholder="Enter your goal..." maxlength="100">
+        <button class="btn primary-btn" id="confirmGoalBtn">Add</button>
+        <button class="btn cancel-btn" id="cancelGoalBtn">Cancel</button>
+      </div>
+      <button class="btn add-goal-btn" id="addGoalBtn">➕ Add Goal</button>
+    </section>
+
+    <!-- Weekly Analytics -->
+    <section class="card">
+      <h2 class="card-title">📊 Weekly Mood Analytics</h2>
+      <div class="chart-container">
+        <canvas id="moodChart"></canvas>
+      </div>
+      <div class="week-summary" id="weekSummary">
+        <div class="summary-stat">
+          <span class="stat-value" id="avgMood">—</span>
+          <span class="stat-label">Avg Mood</span>
+        </div>
+        <div class="summary-stat">
+          <span class="stat-value" id="bestDay">—</span>
+          <span class="stat-label">Best Day</span>
+        </div>
+        <div class="summary-stat">
+          <span class="stat-value" id="loggedDays">—</span>
+          <span class="stat-label">Days Logged</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Motivational Quote -->
+    <section class="card quote-card" id="quoteCard">
+      <h2 class="card-title">💬 Daily Motivation</h2>
+      <blockquote class="quote-text" id="quoteText">Loading...</blockquote>
+      <cite class="quote-author" id="quoteAuthor">—</cite>
+      <button class="btn refresh-quote-btn" id="refreshQuoteBtn">🔄 New Quote</button>
+    </section>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
