@@ -337,7 +337,13 @@ function renderChart() {
 
 function renderTheme() {
   document.documentElement.setAttribute('data-theme', state.theme);
-  $('themeToggle').textContent = state.theme === 'dark' ? '🌙' : '☀️';
+  // Toggle icon visibility based on theme
+  const sun = document.querySelector('.icon-sun');
+  const moon = document.querySelector('.icon-moon');
+  if (sun && moon) {
+    sun.style.display = state.theme === 'dark' ? 'block' : 'none';
+    moon.style.display = state.theme === 'dark' ? 'none' : 'block';
+  }
 }
 
 function renderAll() {
@@ -364,7 +370,6 @@ $('themeToggle').addEventListener('click', () => {
 $('moodSlider').addEventListener('input', (e) => {
   const val = parseInt(e.target.value);
   $('moodValueDisplay').textContent = val;
-  $('sliderFill').style.width = ((val - 1) / 9 * 100) + '%';
   updateMoodFaceHighlight(val);
 });
 
