@@ -35,7 +35,6 @@ const QUOTES = [
   { text: "You are stronger than your challenges.", author: "Unknown" },
 ];
 
-// ===== Mood Emoji Map =====
 const MOOD_EMOJIS = {
   1: '😔', 2: '😕', 3: '😐', 4: '🙂', 5: '😊',
   6: '😄', 7: '😁', 8: '🤩', 9: '🥳', 10: '🚀'
@@ -45,17 +44,17 @@ const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 // ===== State =====
 let state = {
-  mood: null,       // { value: 1-10, timestamp }
-  morning: '',      // morning check-in text
-  evening: '',      // evening reflection text
-  goals: [],        // [{ id, text, completed, createdAt }]
+  mood: null,
+  morning: '',
+  evening: '',
+  goals: [],
   streak: 0,
   lastLogDate: null,
   theme: 'dark',
   quoteIndex: 0,
 };
 
-// ===== DOM Refs =====
+// ===== DOM =====
 const $ = id => document.getElementById(id);
 
 // ===== LocalStorage =====
@@ -69,8 +68,6 @@ function loadState() {
   } catch (e) {
     console.warn('Failed to load state:', e);
   }
-
-  // Load theme
   const savedTheme = localStorage.getItem('motivationTracker_theme');
   if (savedTheme) {
     state.theme = savedTheme;
@@ -95,12 +92,6 @@ function getDayName(dateStr) {
   return DAY_NAMES[d.getDay()];
 }
 
-function isYesterday(dateStr) {
-  const d = new Date(dateStr);
-  d.setDate(d.getDate() - 1);
-  return d.toISOString().split('T')[0] === getToday();
-}
-
 function getLast7Days() {
   const days = [];
   for (let i = 6; i >= 0; i--) {
@@ -117,20 +108,16 @@ function calculateStreak() {
     state.streak = 0;
     return;
   }
-
   const today = getToday();
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-  // If last log was today or yesterday, continue streak
   if (state.lastLogDate === today || state.lastLogDate === yesterdayStr) {
-    // Streak is already set, just ensure it's not 0 when it should be
     if (state.mood && state.streak === 0) {
       state.streak = 1;
     }
   } else {
-    // Streak broken
     state.streak = 0;
   }
 }
@@ -142,14 +129,12 @@ function logMood(value) {
   state.mood = { value, timestamp: Date.now() };
   state.lastLogDate = today;
 
-  // Increment streak only if not already logged today
   if (!wasLogged) {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toISOString().split('T')[0];
 
     if (state.lastLogDate === yesterdayStr || state.streak === 0) {
-      // Continued from yesterday or starting fresh
       if (state.mood && state.lastLogDate) {
         state.streak = Math.max(state.streak, 1);
       }
@@ -161,7 +146,7 @@ function logMood(value) {
   renderAll();
 }
 
-// ===== UI Rendering =====
+// ===== Rendering =====
 function renderStreak() {
   $('streakCount').textContent = state.streak;
 }
@@ -180,17 +165,10 @@ function renderMood() {
   } else {
     $('moodPrompt').classList.remove('hidden');
     $('moodLogged').classList.add('hidden');
-    // Reset slider
     $('moodSlider').value = 5;
     $('moodValueDisplay').textContent = '5';
-    updateMoodFaceHighlight(5);
+    $('moodEmoji').textContent = MOOD_EMOJIS[5];
   }
-}
-
-function updateMoodFaceHighlight(val) {
-  document.querySelectorAll('.mood-faces span').forEach(el => {
-    el.classList.toggle('active', parseInt(el.dataset.val) === val);
-  });
 }
 
 function renderMorning() {
@@ -205,12 +183,11 @@ function renderEvening() {
 
 function renderGoals() {
   const activeGoals = state.goals.filter(g => !g.completed);
-  const $count = $('goalCount');
-  $count.textContent = `(${activeGoals.length}/3)`;
+  $('goalCount').textContent = `(${activeGoals.length}/3)`;
 
   const $list = $('goalsList');
   if (state.goals.length === 0) {
-    $list.innerHTML = '<p class="no-goals" style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:8px 0;">No goals yet. Add one below!</p>';
+    $list.innerHTML = '<p style="color:var(--text-muted);font-size:0.8rem;text-align:center;padding:8px 0;">No goals yet.</p>';
   } else {
     $list.innerHTML = state.goals.map(g => `
       <div class="goal-item" data-id="${g.id}">
@@ -237,17 +214,7 @@ let moodChart = null;
 function renderChart() {
   const days = getLast7Days();
   const labels = days.map(d => getDayName(d));
-  const data = days.map(d => {
-    if (state.mood && state.lastLogDate === d) {
-      return state.mood.value;
-    }
-    // Look for mood in a daily log structure (we'll use mood for today only for simplicity)
-    return null;
-  });
-
-  // For demo, we use today's mood value repeated for visualization
-  // In a real app you'd store daily mood history
-  const chartData = days.map((d, i) => {
+  const chartData = days.map((d) => {
     if (d === getToday() && state.mood) return state.mood.value;
     return null;
   });
@@ -258,9 +225,9 @@ function renderChart() {
     moodChart.destroy();
   }
 
-  const gradient = ctx.createLinearGradient(0, 0, 0, 220);
-  gradient.addColorStop(0, 'rgba(99, 102, 241, 0.35)');
-  gradient.addColorStop(1, 'rgba(139, 92, 246, 0.05)');
+  const gradient = ctx.createLinearGradient(0, 0, 0, 180);
+  gradient.addColorStop(0, 'rgba(168, 85, 247, 0.3)');
+  gradient.addColorStop(1, 'rgba(168, 85, 247, 0.02)');
 
   moodChart = new Chart(ctx, {
     type: 'line',
@@ -269,14 +236,14 @@ function renderChart() {
       datasets: [{
         label: 'Mood',
         data: chartData,
-        borderColor: '#8b5cf6',
+        borderColor: '#a855f7',
         backgroundColor: gradient,
-        borderWidth: 2.5,
-        pointBackgroundColor: '#8b5cf6',
+        borderWidth: 2,
+        pointBackgroundColor: '#a855f7',
         pointBorderColor: '#fff',
         pointBorderWidth: 2,
-        pointRadius: 5,
-        pointHoverRadius: 8,
+        pointRadius: 4,
+        pointHoverRadius: 6,
         fill: true,
         tension: 0.4,
       }]
@@ -288,47 +255,29 @@ function renderChart() {
         y: {
           min: 0,
           max: 10,
-          grid: {
-            color: 'rgba(148, 163, 184, 0.1)',
-          },
-          ticks: {
-            color: '#64748b',
-            stepSize: 2,
-          }
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: { color: '#71717a', stepSize: 2 }
         },
         x: {
-          grid: {
-            color: 'rgba(148, 163, 184, 0.05)',
-          },
-          ticks: {
-            color: '#64748b',
-          }
+          grid: { color: 'rgba(255,255,255,0.03)' },
+          ticks: { color: '#71717a' }
         }
       },
       plugins: {
-        legend: {
-          display: false
-        },
+        legend: { display: false },
         tooltip: {
-          backgroundColor: 'rgba(15, 15, 23, 0.9)',
-          titleColor: '#f8fafc',
-          bodyColor: '#94a3b8',
-          borderColor: 'rgba(139, 92, 246, 0.3)',
+          backgroundColor: 'rgba(0,0,0,0.8)',
+          titleColor: '#fafafa',
+          bodyColor: '#71717a',
+          borderColor: 'rgba(168,85,247,0.3)',
           borderWidth: 1,
-          padding: 12,
-          callbacks: {
-            label: ctx => `Mood: ${ctx.raw}/10`
-          }
+          padding: 10,
         }
       },
-      animation: {
-        duration: 800,
-        easing: 'easeOutQuart'
-      }
+      animation: { duration: 600, easing: 'easeOutQuart' }
     }
   });
 
-  // Update summary stats
   const loggedDays = state.mood ? 1 : 0;
   $('loggedDays').textContent = loggedDays;
   $('avgMood').textContent = state.mood ? state.mood.value : '—';
@@ -337,7 +286,6 @@ function renderChart() {
 
 function renderTheme() {
   document.documentElement.setAttribute('data-theme', state.theme);
-  $('themeToggle').textContent = state.theme === 'dark' ? '🌙' : '☀️';
 }
 
 function renderAll() {
@@ -351,40 +299,35 @@ function renderAll() {
   renderTheme();
 }
 
-// ===== Event Handlers =====
+// ===== Events =====
 
-// Theme toggle
 $('themeToggle').addEventListener('click', () => {
   state.theme = state.theme === 'dark' ? 'light' : 'dark';
   localStorage.setItem('motivationTracker_theme', state.theme);
   renderTheme();
 });
 
-// Mood slider
 $('moodSlider').addEventListener('input', (e) => {
   const val = parseInt(e.target.value);
   $('moodValueDisplay').textContent = val;
-  $('sliderFill').style.width = ((val - 1) / 9 * 100) + '%';
-  updateMoodFaceHighlight(val);
+  $('moodEmoji').textContent = MOOD_EMOJIS[val];
 });
 
 $('moodSlider').addEventListener('change', (e) => {
-  updateMoodFaceHighlight(parseInt(e.target.value));
+  const val = parseInt(e.target.value);
+  $('moodEmoji').textContent = MOOD_EMOJIS[val];
 });
 
-// Save mood
 $('saveMoodBtn').addEventListener('click', () => {
   const val = parseInt($('moodSlider').value);
   logMood(val);
 });
 
-// Update mood
 $('updateMoodBtn').addEventListener('click', () => {
   $('moodLogged').classList.add('hidden');
   $('moodPrompt').classList.remove('hidden');
 });
 
-// Morning check-in
 $('saveMorningBtn').addEventListener('click', () => {
   state.morning = $('morningText').value.trim();
   saveState();
@@ -392,7 +335,6 @@ $('saveMorningBtn').addEventListener('click', () => {
   setTimeout(() => $('morningSaved').classList.add('hidden'), 2500);
 });
 
-// Evening reflection
 $('saveEveningBtn').addEventListener('click', () => {
   state.evening = $('eveningText').value.trim();
   saveState();
@@ -400,7 +342,6 @@ $('saveEveningBtn').addEventListener('click', () => {
   setTimeout(() => $('eveningSaved').classList.add('hidden'), 2500);
 });
 
-// Goals - Add
 $('addGoalBtn').addEventListener('click', () => {
   $('addGoalForm').classList.remove('hidden');
   $('goalInput').focus();
@@ -433,7 +374,6 @@ $('goalInput').addEventListener('keydown', (e) => {
   if (e.key === 'Escape') $('cancelGoalBtn').click();
 });
 
-// Goals - Check/Delete (event delegation)
 $('goalsList').addEventListener('click', (e) => {
   const item = e.target.closest('.goal-item');
   if (!item) return;
@@ -455,7 +395,6 @@ $('goalsList').addEventListener('click', (e) => {
   }
 });
 
-// Quote refresh
 $('refreshQuoteBtn').addEventListener('click', () => {
   let newIndex;
   do {
@@ -465,7 +404,6 @@ $('refreshQuoteBtn').addEventListener('click', () => {
   renderQuote();
 });
 
-// ===== Utilities =====
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
@@ -477,8 +415,6 @@ function init() {
   loadState();
   calculateStreak();
   renderAll();
-
-  // Select a random quote on load
   state.quoteIndex = Math.floor(Math.random() * QUOTES.length);
   renderQuote();
 }
