@@ -477,6 +477,133 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+// ===== Chatbot (Gemini) =====
+const SYSTEM_PROMPT = "You are a motivational coach. Respond with short, encouraging messages focused on productivity, mindset, and personal growth.";
+const GEMINI_API_KEY = 'AIzaSyDfKDm0ktK3S3uyH2rsLQNNQOjXxhb_qpI';
+const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+// Session-scoped conversation history (not persisted to localStorage)
+let chatHistory = [
+  { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
+  { role: 'model', parts: [{ text: "Hey there! 👋 I'm your motivational coach. How are you feeling today? What's on your mind?" }] }
+];
+
+let isWaitingForResponse = false;
+
+function getLastUserMessage() {
+  for (let i = chatHistory.length - 1; i >= 0; i--) {
+    if (chatHistory[i].role === 'user') {
+      return chatHistory[i].parts[0].text;
+    }
+  }
+  return '';
+}
+
+function addMessageToUI(text, type) {
+  const messagesEl = document.getElementById('chatMessages');
+  const msg = document.createElement('div');
+  msg.className = `chat-message ${type}-message`;
+  msg.textContent = text;
+  messagesEl.appendChild(msg);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function setInputLoading(loading) {
+  isWaitingForResponse = loading;
+  const input = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('chatSendBtn');
+  if (loading) {
+    input.disabled = true;
+    sendBtn.disabled = true;
+    sendBtn.textContent = '⏳';
+  } else {
+    input.disabled = false;
+    sendBtn.disabled = false;
+    sendBtn.textContent = '➤';
+    input.focus();
+  }
+}
+
+async function sendToGemini(userMessage) {
+  const response = await fetch(GEMINI_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: chatHistory.slice(2).map(msg => ({
+        role: msg.role,
+        parts: msg.parts
+      })),
+      generationConfig: {
+        maxOutputTokens: 200,
+        temperature: 0.8
+      }
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Gemini API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || "I'm having trouble responding right now. Try again! 💪";
+}
+
+async function handleChatSend() {
+  if (isWaitingForResponse) return;
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+
+  // Add user message to UI and history
+  addMessageToUI(text, 'user');
+  chatHistory.push({ role: 'user', parts: [{ text }] });
+
+  setInputLoading(true);
+
+  try {
+    const aiText = await sendToGemini(text);
+    addMessageToUI(aiText, 'ai');
+    chatHistory.push({ role: 'model', parts: [{ text: aiText }] });
+  } catch (err) {
+    console.error('Chat error:', err);
+    addMessageToUI("Oops! Something went wrong. 💪 Try again in a moment!", 'ai');
+  }
+
+  setInputLoading(false);
+}
+
+function initChatbot() {
+  const toggleBtn = document.getElementById('chatToggleBtn');
+  const chatModal = document.getElementById('chatModal');
+  const closeBtn = document.getElementById('chatCloseBtn');
+  const chatInput = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('chatSendBtn');
+
+  if (!toggleBtn || !chatModal) return;
+
+  toggleBtn.addEventListener('click', () => {
+    chatModal.classList.toggle('open');
+    if (chatModal.classList.contains('open')) {
+      chatInput.focus();
+    }
+  });
+
+  closeBtn.addEventListener('click', () => {
+    chatModal.classList.remove('open');
+  });
+
+  sendBtn.addEventListener('click', handleChatSend);
+
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleChatSend();
+    }
+  });
+}
+
 // ===== Init =====
 function init() {
   loadState();
@@ -486,6 +613,8 @@ function init() {
   // Select a random quote on load
   state.quoteIndex = Math.floor(Math.random() * QUOTES.length);
   renderQuote();
+
+  initChatbot();
 }
 
 document.addEventListener('DOMContentLoaded', init);
