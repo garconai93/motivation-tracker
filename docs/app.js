@@ -489,3 +489,137 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+/* ===== Chatbot with Gemini API ===== */
+
+// Gemini API Configuration
+// API key will be injected at build time
+const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY';
+const GEMINI_MODEL = 'gemini-2.0-flash';
+const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+const GEMINI_SYSTEM_PROMPT = "You are a motivational coach. Respond with short, encouraging messages focused on productivity, mindset, and personal growth.";
+
+// Chat state (in-memory only, not persisted)
+let isChatOpen = false;
+let isTyping = false;
+let chatHistory = [];
+
+function toggleChat() {
+  isChatOpen = !isChatOpen;
+  const modal = document.getElementById('chatModal');
+  modal.classList.toggle('open', isChatOpen);
+
+  if (isChatOpen) {
+    document.getElementById('chatInput').focus();
+  }
+}
+
+function handleChatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChatMessage();
+  }
+}
+
+function addChatMessage(content, type = 'ai') {
+  const container = document.getElementById('chatMessages');
+  const msg = document.createElement('div');
+  msg.className = `chat-message ${type}`;
+  msg.textContent = content;
+  container.appendChild(msg);
+  container.scrollTop = container.scrollHeight;
+}
+
+function showTypingIndicator() {
+  const container = document.getElementById('chatMessages');
+  const typing = document.createElement('div');
+  typing.className = 'chat-typing';
+  typing.id = 'typingIndicator';
+  typing.innerHTML = '<span></span><span></span><span></span>';
+  container.appendChild(typing);
+  container.scrollTop = container.scrollHeight;
+}
+
+function hideTypingIndicator() {
+  const typing = document.getElementById('typingIndicator');
+  if (typing) typing.remove();
+}
+
+function setChatInputEnabled(enabled) {
+  document.getElementById('chatInput').disabled = !enabled;
+  document.getElementById('chatSendBtn').disabled = !enabled;
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const message = input.value.trim();
+
+  if (!message || isTyping) return;
+
+  // Add user message
+  addChatMessage(message, 'user');
+  input.value = '';
+
+  // Show typing
+  isTyping = true;
+  showTypingIndicator();
+  setChatInputEnabled(false);
+
+  try {
+    // Build contents for Gemini API
+    const contents = chatHistory.map(h => ({
+      role: h.role === 'user' ? 'user' : 'model',
+      parts: [{ text: h.content }]
+    }));
+
+    // Add current message
+    contents.push({
+      role: 'user',
+      parts: [{ text: message }]
+    });
+
+    const response = await fetch(`${GEMINI_ENDPOINT}?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: contents,
+        systemInstruction: {
+          parts: [{ text: GEMINI_SYSTEM_PROMPT }]
+        },
+        generationConfig: {
+          temperature: 0.8,
+          maxOutputTokens: 256
+        }
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error?.message || 'API Error');
+    }
+
+    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!aiResponse) {
+      throw new Error('No response from AI');
+    }
+
+    // Add to history (in-memory only)
+    chatHistory.push({ role: 'user', content: message });
+    chatHistory.push({ role: 'model', content: aiResponse });
+
+    hideTypingIndicator();
+    addChatMessage(aiResponse, 'ai');
+
+  } catch (error) {
+    hideTypingIndicator();
+    addChatMessage(`⚠️ Error: ${error.message}`, 'error');
+  } finally {
+    isTyping = false;
+    setChatInputEnabled(true);
+  }
+}
