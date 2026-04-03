@@ -479,7 +479,7 @@ function escapeHtml(str) {
 
 // ===== Chatbot (Gemini) =====
 const SYSTEM_PROMPT = "You are a motivational coach. Respond with short, encouraging messages focused on productivity, mindset, and personal growth.";
-const GEMINI_API_KEY = 'AIzaSyAXyM0N156ub-NqbpFEnffDRoGvSgmbTAQ';
+const GEMINI_API_KEY = 'AIzaSyDfKDm0ktK3S3uyH2rsLQNNQOjXxhb_qpI';
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 // Session-scoped conversation history (not persisted to localStorage)
