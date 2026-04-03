@@ -146,6 +146,32 @@
 
   </div>
 
+  <!-- Chat Toggle Button -->
+  <button class="chat-toggle-btn" id="chatToggleBtn" title="Chat with your motivator">💬</button>
+
+  <!-- Chat Modal -->
+  <div class="chat-modal" id="chatModal">
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="chat-avatar">🤖</div>
+        <div>
+          <div class="chat-title">Motivational Coach</div>
+          <div class="chat-subtitle">Always here for you</div>
+        </div>
+      </div>
+      <button class="chat-close" id="chatCloseBtn">✕</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-message ai-message">
+        Hey there! 👋 I'm your motivational coach. How are you feeling today? What's on your mind?
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <input type="text" class="chat-input" id="chatInput" placeholder="Share what's on your mind..." autocomplete="off">
+      <button class="chat-send-btn" id="chatSendBtn">➤</button>
+    </div>
+  </div>
+
   <script src="app.js"></script>
   <script>
     lucide.createIcons();
